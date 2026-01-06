@@ -17,5 +17,6 @@ sudo apt install -y containerd
 # This should already exist
 sudo mkdir -p /etc/containerd
 
+# modify containerd config file to use SystemdCgroup
 containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/' | sudo tee /etc/containerd/config.toml
 
