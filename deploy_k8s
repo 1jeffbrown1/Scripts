@@ -20,3 +20,6 @@ sudo mkdir -p /etc/containerd
 # modify containerd config file to use SystemdCgroup
 containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/' | sudo tee /etc/containerd/config.toml
 
+# Should be ready to initialize the kubernetes environment
+sudo kubeadm init --control-plane-endpoint "<redacted>:6443" --upload-certs
+
