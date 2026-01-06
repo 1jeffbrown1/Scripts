@@ -14,5 +14,8 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 sudo apt install -y containerd
 
+# This should already exist
+sudo mkdir -p /etc/containerd
 
+containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/' | sudo tee /etc/containerd/config.toml
 
