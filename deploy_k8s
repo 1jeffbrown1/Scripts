@@ -1,3 +1,4 @@
+# Debian Distro
 # On each node.  worker and master
 sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
