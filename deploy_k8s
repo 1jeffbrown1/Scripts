@@ -3,12 +3,16 @@
 sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg net-tools gnupg2
 
+# Create keyrings folder if it doesn't exist
+# and download the required keys for a k8s deployment
 sudo mkdir -p /etc/apt/keyrings/
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker-repo.gpg
 
+# add the k8s repo for debian
 echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
+# add the docker repo for debian
 sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
 Types: deb
 URIs: https://download.docker.com/linux/debian
@@ -17,40 +21,51 @@ Components: stable
 Signed-By: /etc/apt/keyrings/docker-repo.gpg
 EOF
 
-##### configure pre-reqs
+##### configure pre-reqs on each node
 sudo sed -ri '/\sswap\s/s/^#?/#/' /etc/fstab
 sudo swapoff -a
 sudo systemctl stop apparmor
 sudo systemctl disable apparmor
 
+# configure modules to load on bootup
 cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
 overlay
 br_netfilter
 EOF
 
+# add the mods to the kernel
 sudo modprobe overlay
 sudo modprobe br_netfilter
 
+# configure networking changes for containerd
 cat <<EOF | sudo tee /etc/sysctl.d/00-containerd.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward                 = 1
 EOF
 
+# apply all changes.  this prevents the need for a reboot
 sudo sysctl --system
 ##### End pre-reqs
 
+# all nodes.  worker and control plane
 sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
 sudo apt install -y containerd
 
-# This should already exist
+# This should already exist.  it should have been created when you installed containerd
 sudo mkdir -p /etc/containerd
 
 # modify containerd config file to use SystemdCgroup
 containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/' | sudo tee /etc/containerd/config.toml
+
+# reload containerd with all changes
+sudo systemctl daemon-reload
+sudo systemctl enable --now containerd
+sudo systemctl restart containerd
+sudo systemctl enable containerd
 
 # Should be ready to initialize the kubernetes environment.  The redacted information is an FQDN to a load balancer
 sudo kubeadm config images pull
