@@ -81,6 +81,7 @@ sudo kubeadm join <redacted> --token <token> --discovery-token-ca-cert-hash <cer
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
 # enable auto-completion on the alias
+# Might not need 777 on the directory.  have to research.  maybe 755 is sufficient
 sudo chmod 777 /etc/bash_completion.d 
 kubectl completion bash > /etc/bash_completion.d/kubectl
 echo 'alias k=kubectl' >>~/.bashrc
