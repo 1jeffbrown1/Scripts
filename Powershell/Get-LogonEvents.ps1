@@ -43,7 +43,7 @@ Function Get-LogonEvents
     $AllData | export-csv "F:\LogonEvts\$Filename" -NoTypeInformation
 }
 
-# Get logon events for the last 24 hours
+# Get logon events for entire day, yesterday
 for($x = 0; $x -le 23; $x++)
 {
     $y = $x + 1
