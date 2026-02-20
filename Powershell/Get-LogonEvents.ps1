@@ -1,4 +1,4 @@
-# Have to a domain admin
+# Have to be a domain admin
 # have to be logged into a domain controller
 # logon events are collected and parsed from the domain controller you are logged into.
 
