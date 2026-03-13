@@ -1,0 +1,36 @@
+# I found this code, somewhere. 
+# I've modified it to fit my needs.
+# Test-NetConnection is too slow, as it performs other things besides just testing the port
+# This function, is very simple, and very fast.
+function Test-TcpPort
+{
+    param(
+        [Parameter(Mandatory=$True, Position=1)]
+        [string]$ComputerName,
+
+        [Parameter(Mandatory=$True, Position=2)]
+        [int]$Port,
+        
+        [int]$Timeout = 1000 # Timeout in milliseconds (default: 1 second)
+    )
+
+    $tcpClient = New-Object System.Net.Sockets.TcpClient
+    try{
+        $connectTask = $tcpClient.ConnectAsync($ComputerName, $Port)
+        $connectTask.Wait($Timeout) | Out-Null # Wait for the task to complete or timeout
+
+        if ($tcpClient.Connected)
+        {
+            Write-Host "SUCCESS: Connection to $ComputerName on port $Port succeeded." -ForegroundColor Green
+            return $true
+        }else{
+            Write-Host "FAILED: Connection to $ComputerName on port $Port timed out or was refused." -ForegroundColor Red
+            return $false
+        }
+    }catch{
+        Write-Host "ERROR: An error occurred during connection attempt. Message: $_.Exception.Message" -ForegroundColor Red
+        return $false
+    }finally{if ($tcpClient -ne $null) {$tcpClient.Dispose()}}
+}
+
+Test-TcpPort -ComputerName <redacted> -port 445
